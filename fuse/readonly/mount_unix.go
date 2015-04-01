@@ -9,7 +9,7 @@ import (
 )
 
 // Mount mounts ipfs at a given location, and returns a mount.Mount instance.
-func Mount(ipfs *core.IpfsNode, mountpoint string) (mount.Mount, error) {
+func Mount(ipfs *core.IpfsNode, mountpoint, allow string) (mount.Mount, error) {
 	fsys := NewFileSystem(ipfs)
-	return mount.NewMount(ipfs, fsys, mountpoint)
+	return mount.NewMount(ipfs, fsys, mountpoint, allow)
 }

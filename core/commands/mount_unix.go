@@ -135,7 +135,9 @@ baz
 			nsdir = cfg.Mounts.IPNS // NB: be sure to not redeclare!
 		}
 
-		err = Mount(node, fsdir, nsdir)
+		allow := cfg.Mounts.Allow
+
+		err = Mount(node, fsdir, nsdir, allow)
 		if err != nil {
 			res.SetError(err, cmds.ErrNormal)
 			return
@@ -157,7 +159,7 @@ baz
 	},
 }
 
-func Mount(node *core.IpfsNode, fsdir, nsdir string) error {
+func Mount(node *core.IpfsNode, fsdir, nsdir, allow string) error {
 	// check if we already have live mounts.
 	// if the user said "Mount", then there must be something wrong.
 	// so, close them and try again.
@@ -173,14 +175,14 @@ func Mount(node *core.IpfsNode, fsdir, nsdir string) error {
 	}
 
 	var err error
-	if err = doMount(node, fsdir, nsdir); err != nil {
+	if err = doMount(node, fsdir, nsdir, allow); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func doMount(node *core.IpfsNode, fsdir, nsdir string) error {
+func doMount(node *core.IpfsNode, fsdir, nsdir, allow string) error {
 	fmtFuseErr := func(err error) error {
 		s := err.Error()
 		if strings.Contains(s, fuseNoDirectory) {
@@ -200,12 +202,12 @@ func doMount(node *core.IpfsNode, fsdir, nsdir string) error {
 	done := make(chan struct{})
 
 	go func() {
-		fsmount, err1 = rofs.Mount(node, fsdir)
+		fsmount, err1 = rofs.Mount(node, fsdir, allow)
 		done <- struct{}{}
 	}()
 
 	go func() {
-		nsmount, err2 = ipns.Mount(node, nsdir, fsdir)
+		nsmount, err2 = ipns.Mount(node, nsdir, fsdir, allow)
 		done <- struct{}{}
 	}()
 

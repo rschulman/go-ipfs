@@ -3,6 +3,7 @@
 package mount
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -23,8 +24,21 @@ type mount struct {
 
 // Mount mounts a fuse fs.FS at a given location, and returns a Mount instance.
 // parent is a ContextGroup to bind the mount's ContextGroup to.
-func NewMount(p ctxgroup.ContextGroup, fsys fs.FS, mountpoint string) (Mount, error) {
-	conn, err := fuse.Mount(mountpoint)
+func NewMount(p ctxgroup.ContextGroup, fsys fs.FS, mountpoint, allow string) (Mount, error) {
+	var conn *fuse.Conn
+	var err error
+
+	switch {
+	case len(allow) == 0:
+		conn, err = fuse.Mount(mountpoint)
+	case allow == "root":
+		conn, err = fuse.Mount(mountpoint, fuse.AllowRoot())
+	case allow == "other":
+		conn, err = fuse.Mount(mountpoint, fuse.AllowOther())
+	case true:
+		return nil, errors.New("Valid mount options for allow: 'root', 'other'")
+	}
+
 	if err != nil {
 		return nil, err
 	}

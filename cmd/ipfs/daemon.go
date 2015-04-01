@@ -202,7 +202,9 @@ func daemonFunc(req cmds.Request, res cmds.Response) {
 			nsdir = cfg.Mounts.IPNS
 		}
 
-		err = commands.Mount(node, fsdir, nsdir)
+		allow := cfg.Mounts.Allow
+
+		err = commands.Mount(node, fsdir, nsdir, allow)
 		if err != nil {
 			res.SetError(err, cmds.ErrNormal)
 			return
